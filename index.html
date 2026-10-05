@@ -1,1 +1,302 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>メディアビューワー - MP4</title><style>body{margin:0;background:#000;color:#fff;font-family:Arial,sans-serif;height:100vh;overflow:hidden}h1{margin:2px 0;font-size:16px;text-align:center}.cl{display:flex;justify-content:center;align-items:center;gap:4px;padding-bottom:2px}.vp{position:absolute;top:2px;right:2px;display:flex;align-items:center;gap:2px;background:#0008;padding:2px 4px;border-radius:10px;border:1px solid #444}input[type=file]{color:#fff;background:#333;border:1px solid #555;padding:2px 4px;border-radius:4px;cursor:pointer}input[type=file]::-webkit-file-upload-button{display:none}.sw{display:flex;align-items:center;gap:2px;font-size:12px}input[type=range]{cursor:pointer}.gc{height:calc(100vh - 35px);overflow-y:auto;padding:2px}.gr{display:flex;align-items:flex-start;gap:2px}.gi{position:relative;padding:0;border-radius:2px;border:1px solid transparent;background:0 0;transition:.1s;cursor:grab}.gi:active{cursor:grabbing}.gi:hover{background:#333;border-color:#555}.gi video{width:100%;height:auto;display:block;background:#222;border-radius:2px;pointer-events:none}.gi video.p{outline:2px solid #4fa3ff;outline-offset:-2px}.fn{margin-top:1px;font-size:10px;color:#ccc;text-align:center;word-break:break-all;line-height:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;pointer-events:none}.cm{position:absolute;background:#222;border:1px solid #555;border-radius:4px;padding:2px 0;display:none;z-index:1000;min-width:150px;word-break:break-all}.cm button{background:0 0;border:none;color:#fff;padding:4px 10px;width:100%;text-align:left;cursor:pointer}.cm button:hover{background:#4fa3ff}.cm .fp{padding:4px 10px;font-size:11px;color:#aaa;cursor:default}</style></head><body><h1>メディアビューワー - MP4</h1><div class="vp"><span style="font-size:14px">🔊</span> <input type="range" id="vs" min="0" max="100" value="10" title="音量調整"> <span id="vv" style="font-size:11px;width:30px">10%</span></div><div class="cl"><label><input type="file" id="fi" webkitdirectory directory multiple> 📁 フォルダ選択</label><div class="sw"><span>列数:</span> <input type="range" id="cs" min="1" max="10" value="5"></div></div><div class="gc" id="sa"><div class="gr" id="g"></div></div><div id="c" class="cm"><div class="fp" id="p"></div><button id="b">元ファイルを開く</button></div><script>const D=document,$=i=>D.getElementById(i),M=new WeakMap,O=new IntersectionObserver(e=>e.forEach(t=>{!t.isIntersecting&&!t.target.paused&&t.target.pause()}),{root:$('sa'),threshold:.1}),C=$('c'),P=$('p');let V=.1,U=null,K=null,F=[],I=0,E=[],A=[],R=()=>{let G=$('g');G.innerHTML='';A=[];for(let j=0;j<$('cs').value;j++){let c=D.createElement('div');c.style.cssText='flex:1;display:flex;flex-direction:column;gap:2px';G.append(c);A.push(c)}};$('cs').oninput=()=>{R();E.forEach((x,j)=>A[j%A.length].append(x))};$('vs').oninput=e=>{let v=e.target.value;V=v/100;$('vv').textContent=v+'%';D.querySelectorAll('video').forEach(x=>x.volume=V)};$('fi').onchange=e=>{F=[...e.target.files].filter(f=>f.type=='video/mp4').sort((a,b)=>new Intl.Collator(0,{numeric:1,sensitivity:'base'}).compare(a.name,b.name));I=0;E=[];R();L()};let L=()=>{if(I>=F.length)return;F.slice(I,I+30).forEach((f,x)=>{let i=D.createElement('div'),v=D.createElement('video'),n=D.createElement('div'),s=e=>{e.preventDefault();U=f;P.textContent=f.path||f.name;C.style.left=e.pageX+'px';C.style.top=e.pageY+'px';C.style.display='block'};i.className='gi';i.title=f.name;i.draggable=1;i.ondragstart=()=>{K=i;i.style.opacity=.5};i.ondragend=()=>{i.style.opacity=1;K=null};i.ondragover=e=>{e.preventDefault();if(K&&K!=i){let r=i.getBoundingClientRect();i.parentNode.insertBefore(K,e.clientY<r.top+r.height/2?i:i.nextSibling)}};i.oncontextmenu=s;i.onclick=()=>{if(v.paused){if(M.has(v))v.currentTime=M.get(v);v.play()}else v.pause()};i.ondblclick=()=>v.requestFullscreen?.();v.src=URL.createObjectURL(f);v.preload='metadata';v.volume=V;v.loop=1;v.onfullscreenchange=()=>{v.style.pointerEvents=(v.controls=!!D.fullscreenElement)?'auto':'';v.controls&&v.play()};v.onpause=()=>{M.set(v,v.currentTime);v.classList.remove('p')};v.onplay=()=>v.classList.add('p');O.observe(v);n.className='fn';n.textContent=f.name;i.append(v,n);E.push(i);A[(I+x)%A.length].append(i)});I+=30};$('sa').onscroll=e=>{if(e.target.scrollTop+e.target.clientHeight>=e.target.scrollHeight-500)L()};D.onclick=()=>C.style.display='none';$('b').onclick=()=>{if(U?.path&&window.electronAPI?.showInFolder)window.electronAPI.showInFolder(U.path);else alert('ファイルパス: '+(U?.path||U?.name));C.style.display='none'}</script></body></html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>メディアビューワー</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial,sans-serif;height:100vh;overflow:hidden}
+h1{margin:2px 0;font-size:16px;text-align:center}
+.cl{display:flex;justify-content:center;align-items:center;gap:10px;padding-bottom:4px;flex-wrap:wrap}
+.vp{position:absolute;top:2px;right:2px;display:flex;align-items:center;gap:2px;background:#0008;padding:2px 4px;border-radius:10px;border:1px solid #444}
+.btn, select, input[type=file]{color:#fff;background:#333;border:1px solid #555;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px}
+.btn:hover, select:hover{background:#444}
+.btn-danger{background:#522} .btn-danger:hover{background:#722}
+input[type=file]::-webkit-file-upload-button{display:none}
+.sw{display:flex;align-items:center;gap:4px;font-size:12px}
+input[type=range]{cursor:pointer}
+.gc{height:calc(100vh - 45px);overflow-y:auto;padding:2px}
+.gr{display:flex;align-items:flex-start;gap:2px}
+.gi{position:relative;padding:0;border-radius:2px;border:1px solid transparent;background:0 0;transition:.1s;cursor:grab}
+.gi:active{cursor:grabbing}
+.gi:hover{background:#333;border-color:#555}
+.gi video, .gi img{width:100%;height:auto;display:block;background:#222;border-radius:2px;pointer-events:none}
+.gi video.p{outline:2px solid #4fa3ff;outline-offset:-2px}
+.fn{margin-top:2px;font-size:10px;color:#ccc;text-align:center;word-break:break-all;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;pointer-events:none}
+.cm{position:absolute;background:#222;border:1px solid #555;border-radius:4px;padding:2px 0;display:none;z-index:1000;min-width:150px;word-break:break-all}
+.cm button{background:0 0;border:none;color:#fff;padding:4px 10px;width:100%;text-align:left;cursor:pointer}
+.cm button:hover{background:#4fa3ff}
+.cm .fp{padding:4px 10px;font-size:11px;color:#aaa;cursor:default}
+
+#fsv{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:2000;align-items:center;justify-content:center}
+#fsv video, #fsv img{max-width:100%;max-height:100%;object-fit:contain;background:#000}
+.nav-btn{position:absolute;top:0;height:100%;width:15%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:3rem;opacity:0;transition:opacity .2s;text-shadow:0 0 10px #000;user-select:none;z-index:2010}
+#fsp{left:0;background:linear-gradient(90deg, rgba(0,0,0,0.6) 0%, transparent 100%);}
+#fsn{right:0;background:linear-gradient(270deg, rgba(0,0,0,0.6) 0%, transparent 100%);}
+.nav-btn:hover{opacity:1}
+#fsc{position:absolute;top:15px;right:15px;background:#333;color:#fff;border:none;padding:8px 12px;cursor:pointer;border-radius:4px;z-index:2020;font-size:14px}
+#fsc:hover{background:#555}
+
+/* iOS向けの調整: 再生ボタンを消してUIをスッキリさせる */
+.gi video::-webkit-media-controls { display:none !important; }
+</style>
+</head>
+<body>
+<h1>メディアビューワー</h1>
+<div class="vp">
+    <span style="font-size:14px">🔊</span> 
+    <input type="range" id="vs" min="0" max="100" value="10" title="音量調整"> 
+    <span id="vv" style="font-size:11px;width:30px">10%</span>
+</div>
+<div class="cl">
+    <button class="btn" id="btn-dir">📁 詳細追加(PC用)</button>
+    <label><input type="file" id="fi" accept="video/*,image/*" webkitdirectory directory multiple> 📁 フォルダ追加(iOS対応)</label>
+    <button class="btn btn-danger" id="btn-clear">🗑️ クリア</button>
+    
+    <div class="sw">
+        <select id="filter-type">
+            <option value="all">すべて</option>
+            <option value="video">動画のみ</option>
+            <option value="image">画像のみ</option>
+        </select>
+    </div>
+    
+    <div class="sw">
+        <span>列:</span> <input type="range" id="cs" min="1" max="10" value="5">
+    </div>
+</div>
+
+<div class="gc" id="sa">
+    <div class="gr" id="g"></div>
+</div>
+
+<div id="c" class="cm">
+    <div class="fp" id="p"></div>
+    <button id="b">元ファイルを開く</button>
+</div>
+
+<div id="fsv">
+    <button id="fsc">✕ 閉じる</button>
+    <div id="fsp" class="nav-btn">❮</div>
+    <div id="fsn" class="nav-btn">❯</div>
+    <div id="fsm" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
+</div>
+
+<script>
+const D=document,$=i=>D.getElementById(i),M=new WeakMap;
+const O=new IntersectionObserver(e=>e.forEach(t=>{!t.isIntersecting&&t.target.tagName==='VIDEO'&&!t.target.paused&&t.target.pause()}),{root:$('sa'),threshold:.1});
+const C=$('c'),P=$('p');
+let V=.1,U=null,K=null,AllFiles=[],F=[],I=0,E=[],A=[];
+
+let fsIdx = -1;
+const Fsv = $('fsv'), Fsm = $('fsm');
+
+const openFs = (idx) => {
+    if(idx < 0 || idx >= F.length) return;
+    
+    D.querySelectorAll('.gi video').forEach(v => v.pause());
+    
+    fsIdx = idx;
+    const f = F[fsIdx];
+    Fsm.innerHTML = '';
+    const isVideo = f.type.startsWith('video/');
+    let media = D.createElement(isVideo ? 'video' : 'img');
+    media.src = URL.createObjectURL(f);
+    
+    if(isVideo) {
+        media.controls = true; media.autoplay = true; media.loop = true; media.volume = V;
+        media.setAttribute('playsinline', 'true');
+    }
+    Fsm.appendChild(media);
+    Fsv.style.display = 'flex';
+    if(!D.fullscreenElement) Fsv.requestFullscreen?.().catch(()=>{});
+};
+
+const closeFs = () => {
+    Fsv.style.display = 'none';
+    Fsm.innerHTML = '';
+    if(D.fullscreenElement) D.exitFullscreen?.().catch(()=>{});
+};
+
+const goFs = (dir) => {
+    if(F.length===0) return;
+    fsIdx = (fsIdx + dir + F.length) % F.length;
+    openFs(fsIdx);
+};
+
+$('fsp').onclick = (e) => { e.stopPropagation(); goFs(-1); };
+$('fsn').onclick = (e) => { e.stopPropagation(); goFs(1); };
+$('fsc').onclick = closeFs;
+Fsv.onclick = (e) => { if(e.target===Fsv || e.target===Fsm) closeFs(); };
+
+D.addEventListener('keydown', e => {
+    if(Fsv.style.display === 'flex') {
+        if(e.key === 'ArrowLeft') goFs(-1);
+        if(e.key === 'ArrowRight') goFs(1);
+        if(e.key === 'Escape') closeFs();
+    }
+});
+
+const R=()=>{
+    let G=$('g');G.innerHTML='';A=[];
+    for(let j=0;j<$('cs').value;j++){
+        let c=D.createElement('div');
+        c.style.cssText='flex:1;display:flex;flex-direction:column;gap:2px';
+        G.append(c);A.push(c);
+    }
+};
+
+$('cs').oninput=()=>{
+    R();E.forEach((x,j)=>A[j%A.length].append(x));
+};
+
+$('vs').oninput=e=>{
+    V=e.target.value/100;
+    $('vv').textContent=e.target.value+'%';
+    D.querySelectorAll('video').forEach(x=>x.volume=V);
+    const fsVid = Fsm.querySelector('video');
+    if(fsVid) fsVid.volume = V;
+};
+
+$('btn-clear').onclick=()=>{
+    AllFiles=[]; applyFilter();
+};
+
+const applyFilter=()=>{
+    const filter = $('filter-type').value;
+    F = AllFiles.filter(f => {
+        if(filter === 'video') return f.type.startsWith('video/');
+        if(filter === 'image') return f.type.startsWith('image/');
+        return true;
+    });
+    I=0; E=[]; R(); L();
+};
+
+$('filter-type').onchange = applyFilter;
+
+const handleFiles=(newFiles)=>{
+    const currentFilter = $('filter-type').value;
+    const validFiles = newFiles.filter(f => {
+        const isVid = f.type.startsWith('video/');
+        const isImg = f.type.startsWith('image/');
+        if (!isVid && !isImg) return false;
+        if (currentFilter === 'video' && !isVid) return false;
+        if (currentFilter === 'image' && !isImg) return false;
+        return true;
+    });
+
+    const existingNames = new Set(AllFiles.map(f => f.path || f.name));
+    const uniqueFiles = validFiles.filter(f => !existingNames.has(f.path || f.name));
+    AllFiles = [...AllFiles, ...uniqueFiles].sort((a,b)=>new Intl.Collator(0,{numeric:1,sensitivity:'base'}).compare(a.name,b.name));
+    applyFilter();
+};
+
+$('fi').onchange=e=>handleFiles([...e.target.files]);
+
+$('btn-dir').onclick=async()=>{
+    try {
+        if(!window.showDirectoryPicker) {
+            alert('この機能はお使いのブラウザでは非対応です。「フォルダ追加(iOS対応)」をご利用ください。');
+            return;
+        }
+        const dirHandle = await window.showDirectoryPicker();
+        const files = [];
+        const currentFilter = $('filter-type').value;
+        
+        async function getFiles(dir, path='') {
+            for await (const entry of dir.values()) {
+                if(entry.kind==='file'){
+                    const file = await entry.getFile();
+                    const isVid = file.type.startsWith('video/');
+                    const isImg = file.type.startsWith('image/');
+                    let allow = (isVid || isImg);
+                    if (currentFilter === 'video' && !isVid) allow = false;
+                    if (currentFilter === 'image' && !isImg) allow = false;
+                    
+                    if(allow) {
+                        Object.defineProperty(file, 'path', {value: path + file.name}); 
+                        files.push(file);
+                    }
+                } else if(entry.kind==='directory'){
+                    await getFiles(entry, path + entry.name + '/');
+                }
+            }
+        }
+        await getFiles(dirHandle);
+        handleFiles(files);
+    } catch (e) {
+        console.warn('ディレクトリ選択キャンセル', e);
+    }
+};
+
+const L=()=>{
+    if(I>=F.length)return;
+    F.slice(I,I+30).forEach((f,x)=>{
+        let i=D.createElement('div'), media, n=D.createElement('div');
+        
+        const isVideo = f.type.startsWith('video/');
+        media = D.createElement(isVideo ? 'video' : 'img');
+        
+        let s=e=>{
+            e.preventDefault();U=f;
+            P.textContent=f.path||f.name;
+            C.style.left=e.pageX+'px';C.style.top=e.pageY+'px';C.style.display='block';
+        };
+        
+        i.className='gi';i.title=f.name;i.draggable=1;
+        i.ondragstart=()=>{K=i;i.style.opacity=.5};
+        i.ondragend=()=>{i.style.opacity=1;K=null};
+        i.ondragover=e=>{
+            e.preventDefault();
+            if(K&&K!=i){
+                let r=i.getBoundingClientRect();
+                i.parentNode.insertBefore(K,e.clientY<r.top+r.height/2?i:i.nextSibling);
+            }
+        };
+        i.oncontextmenu=s;
+        
+        media.src=URL.createObjectURL(f);
+        
+        if(isVideo){
+            media.preload='metadata';media.volume=V;media.loop=1;
+            media.setAttribute('playsinline', 'true'); // iOS必須
+            
+            i.onclick=()=>{
+                if(media.paused){
+                    // 排他処理（他の動画を止める処理）を削除し、純粋に複数再生を許可
+                    if(M.has(media))media.currentTime=M.get(media);
+                    media.play().catch(e => console.warn('再生ブロック:', e));
+                }else{
+                    media.pause();
+                }
+            };
+            i.ondblclick=()=> openFs(F.indexOf(f));
+            media.onpause=()=>{M.set(media,media.currentTime);media.classList.remove('p')};
+            media.onplay=()=>media.classList.add('p');
+            O.observe(media);
+        } else {
+            i.onclick=()=> openFs(F.indexOf(f));
+        }
+
+        n.className='fn';n.textContent=f.name;
+        i.append(media,n);E.push(i);A[(I+x)%A.length].append(i);
+    });
+    I+=30;
+};
+
+$('sa').onscroll=e=>{
+    if(e.target.scrollTop+e.target.clientHeight>=e.target.scrollHeight-500) L();
+};
+
+D.onclick=(e)=> {
+    if(!e.target.closest('.gi') && !e.target.closest('.cm')) C.style.display='none';
+};
+
+$('b').onclick=()=>{
+    if(U?.path&&window.electronAPI?.showInFolder) window.electronAPI.showInFolder(U.path);
+    else alert('ファイルパス: '+(U?.path||U?.name));
+    C.style.display='none';
+};
+</script>
+</body>
+</html>
